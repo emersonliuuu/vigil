@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CoolSentinel · On-prem Leak Early Warning</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #151b24; --panel2: #1b2330; --line: #2a3443;
+    --text: #e6edf3; --muted: #8b98a9; --ok: #2fbf71; --warn: #f2b134; --bad: #f0524f;
+    --accent: #4aa8ff; --band: rgba(74,168,255,.18);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.5 -apple-system, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif; }
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 14px 20px; border-bottom: 1px solid var(--line); }
+  h1 { font-size: 20px; margin: 0; letter-spacing: .02em; }
+  h1 small { font-size: 13px; color: var(--muted); font-weight: 400; margin-left: 8px; }
+  .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+  .badge { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 3px 11px; font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .badge b { color: var(--text); font-weight: 600; }
+  .badge.local { border-color: #1f6f46; color: #7be0a6; }
+  main { display: grid; grid-template-columns: minmax(300px, 380px) 1fr; gap: 16px; padding: 16px 20px; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+  .panel h2 { font-size: 13px; color: var(--muted); font-weight: 600; margin: 0 0 10px; text-transform: none; }
+  #banner { border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; border: 1px solid var(--line); background: var(--panel2); }
+  #banner.ok { border-color: #1f6f46; }
+  #banner.alert { border-color: var(--bad); background: #2a1616; }
+  #banner .big { font-size: 17px; font-weight: 700; }
+  #banner .sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .rack { border: 1px solid var(--line); border-radius: 8px; padding: 8px 6px; text-align: center; cursor: pointer; background: var(--panel2);
+    font: inherit; color: inherit; transition: transform .1s; }
+  .rack:hover { transform: translateY(-1px); }
+  .rack.sel { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .rack .id { font-weight: 700; font-size: 14px; }
+  .rack .st { font-size: 11px; color: var(--muted); }
+  .rack .bar { height: 5px; border-radius: 3px; background: #0b0f15; margin-top: 6px; overflow: hidden; }
+  .rack .bar i { display: block; height: 100%; width: 0; background: var(--ok); }
+  .rack.warn { border-color: var(--warn); } .rack.warn .bar i { background: var(--warn); }
+  .rack.bad { border-color: var(--bad); background: #2a1616; } .rack.bad .bar i { background: var(--bad); }
+  .rack.bad .st { color: #ff9c9a; font-weight: 600; }
+  .kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+  .kpi { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; }
+  .kpi .v { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .kpi .l { font-size: 12px; color: var(--muted); }
+  .kpi.hero .v { color: var(--ok); }
+  .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 1150px) { .charts { grid-template-columns: 1fr; } }
+  .chart { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px 4px; }
+  .chart .t { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+  .chart .t b { color: var(--text); }
+  canvas { width: 100%; height: 170px; display: block; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--muted); margin: 0 0 10px; }
+  .legend span::before { content: ""; display: inline-block; width: 14px; height: 3px; margin-right: 6px; vertical-align: middle; background: var(--c); }
+  .legend .bandkey::before { height: 9px; background: var(--band); border: 1px solid rgba(74,168,255,.5); }
+  .controls { display: flex; align-items: center; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
+  button.ctl { background: var(--accent); color: #04121f; border: 0; border-radius: 8px; padding: 8px 16px; font: inherit; font-weight: 700; cursor: pointer; min-width: 76px; }
+  button.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); font-weight: 500; }
+  input[type=range] { flex: 1; min-width: 180px; accent-color: var(--accent); }
+  #clock { font-variant-numeric: tabular-nums; color: var(--muted); min-width: 130px; }
+  footer { padding: 4px 20px 20px; color: var(--muted); font-size: 12px; }
+  footer b { color: var(--warn); font-weight: 600; }
+</style>
+</head>
+<body>
+<header>
+  <h1>CoolSentinel <small>Leak early warning that never leaves the data hall · Vertical Foundation Model demo</small></h1>
+  <div class="badges" id="badges"></div>
+</header>
+<main>
+  <section>
+    <div id="banner" class="ok"><div class="big" id="bannerBig"></div><div class="sub" id="bannerSub"></div></div>
+    <div class="panel">
+      <h2>Container data hall A · 12 liquid-cooled racks (click to inspect)</h2>
+      <div class="grid" id="grid"></div>
+      <div class="kpis" id="kpis"></div>
+    </div>
+  </section>
+  <section class="panel">
+    <h2 id="chartTitle"></h2>
+    <div class="legend">
+      <span style="--c:#e6edf3">Measured</span>
+      <span class="bandkey">Normal range the model forecast 4 h earlier (10–90%)</span>
+      <span style="--c:#f2b134">Simulated leak starts</span>
+      <span style="--c:#2fbf71">Model alert</span>
+      <span style="--c:#f0524f">Static low-pressure alarm</span>
+    </div>
+    <div class="charts" id="charts"></div>
+    <div class="controls">
+      <button class="ctl" id="play">▶ Play</button>
+      <button class="ctl ghost" id="jump">Jump to before leak</button>
+      <input type="range" id="slider" min="0" value="0" aria-label="Timeline">
+      <span id="clock"></span>
+    </div>
+  </section>
+</main>
+<footer id="foot"></footer>
+
+<script src="data.js"></script>
+<script>
+(function () {
+  if (!window.DATA) { document.body.innerHTML = '<p style="padding:24px">data.js not found. Run <code>.venv/bin/python pipeline.py</code> first.</p>'; return; }
+  const D = window.DATA, M = D.meta, ET = D.eval_times, VIEW = 2 * 288;   // show last 2 days
+  let ei = 0, sel = M.leak_rack, timer = null;
+  const $ = id => document.getElementById(id);
+  const tLabel = t => { const m = t * M.step_min; return `Day ${Math.floor(m / 1440) + 1}, ${String(Math.floor(m % 1440 / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`; };
+  const fmtParams = p => p ? (p >= 1e6 ? (p / 1e6).toFixed(0) + 'M' : p) + ' params' : 'No parameters';
+
+  $('badges').innerHTML =
+    `<span class="badge"><b>${M.model}</b></span>` +
+    `<span class="badge"><b>${fmtParams(M.params)}</b> · CPU inference</span>` +
+    `<span class="badge"><b>Zero training</b> · each rack uses only its own last ${M.context_h} h</span>` +
+    `<span class="badge local">● Data never leaves this machine</span>`;
+
+  const grid = $('grid');
+  D.racks.forEach(r => {
+    const b = document.createElement('button');
+    b.className = 'rack'; b.dataset.r = r;
+    b.innerHTML = `<div class="id">${r}</div><div class="st"></div><div class="bar"><i></i></div>`;
+    b.onclick = () => { sel = r; render(); };
+    grid.appendChild(b);
+  });
+
+  const charts = $('charts');
+  D.signals.forEach(s => {
+    const d = document.createElement('div'); d.className = 'chart';
+    d.innerHTML = `<div class="t"><span><b>${s.name}</b> (${s.unit})</span><span id="v_${s.key}"></span></div><canvas id="c_${s.key}"></canvas>`;
+    charts.appendChild(d);
+  });
+
+  function drawChart(sig, now) {
+    const cv = $('c_' + sig.key), dpr = window.devicePixelRatio || 1;
+    const W = cv.clientWidth, H = cv.clientHeight;
+    if (cv.width !== W * dpr) { cv.width = W * dpr; cv.height = H * dpr; }
+    const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    const y = D.series[sel][sig.key], band = D.bands[sel][sig.key];
+    const a = Math.max(0, now - VIEW), b = now, padL = 38, padB = 16, padT = 6;
+    let lo = Infinity, hi = -Infinity;
+    for (let i = a; i < b; i++) {
+      lo = Math.min(lo, y[i], band.lo[i] ?? y[i]); hi = Math.max(hi, y[i], band.hi[i] ?? y[i]);
+    }
+    if (sig.key === 'pressure' && sel === M.leak_rack) lo = Math.min(lo, M.pressure_alarm - 2);
+    const pad = (hi - lo) * 0.08 || 1; lo -= pad; hi += pad;
+    const X = i => padL + (i - a) / (VIEW) * (W - padL - 6), Y = v => padT + (hi - v) / (hi - lo) * (H - padT - padB);
+    g.font = '10px system-ui'; g.fillStyle = '#8b98a9'; g.strokeStyle = '#232c39'; g.lineWidth = 1;
+    for (let k = 0; k <= 3; k++) {
+      const v = lo + (hi - lo) * k / 3, yy = Y(v);
+      g.beginPath(); g.moveTo(padL, yy); g.lineTo(W - 6, yy); g.stroke();
+      g.fillText(v.toFixed(hi - lo > 12 ? 0 : 1), 2, yy + 3);
+    }
+    // forecast band
+    g.fillStyle = 'rgba(74,168,255,.18)';
+    let open = false; const lower = [];
+    g.beginPath();
+    for (let i = a; i < b; i++) {
+      if (band.hi[i] == null) continue;
+      if (!open) { g.moveTo(X(i), Y(band.hi[i])); open = true; } else g.lineTo(X(i), Y(band.hi[i]));
+      lower.push(i);
+    }
+    for (let j = lower.length - 1; j >= 0; j--) g.lineTo(X(lower[j]), Y(band.lo[lower[j]]));
+    if (open) { g.closePath(); g.fill(); }
+    // static alarm line on pressure
+    if (sig.key === 'pressure') {
+      g.strokeStyle = 'rgba(240,82,79,.55)'; g.setLineDash([4, 4]);
+      const yy = Y(M.pressure_alarm);
+      if (yy < H - padB) { g.beginPath(); g.moveTo(padL, yy); g.lineTo(W - 6, yy); g.stroke(); g.fillStyle = '#f0524f'; g.fillText('Low-pressure alarm ' + M.pressure_alarm, padL + 4, yy - 3); }
+      g.setLineDash([]);
+    }
+    // event markers
+    const mark = (t, color) => { if (t == null || t < a || t > b) return; g.strokeStyle = color; g.lineWidth = 1.5; g.beginPath(); g.moveTo(X(t), padT); g.lineTo(X(t), H - padB); g.stroke(); };
+    if (sel === M.leak_rack) { mark(M.leak_start, '#f2b134'); mark(M.alert_t, '#2fbf71'); mark(M.static_alarm_t, '#f0524f'); }
+    // actual
+    g.strokeStyle = '#e6edf3'; g.lineWidth = 1.4; g.beginPath();
+    for (let i = a; i < b; i++) { i === a ? g.moveTo(X(i), Y(y[i])) : g.lineTo(X(i), Y(y[i])); }
+    g.stroke();
+    $('v_' + sig.key).textContent = 'Now ' + y[b - 1].toFixed(1) + ' ' + sig.unit;
+  }
+
+  function render() {
+    const now = ET[ei];
+    let alerting = [];
+    document.querySelectorAll('.rack').forEach(b => {
+      const r = b.dataset.r, s = D.scores[r][ei], at = D.alerts[r];
+      const isBad = at != null && now >= at, isWarn = !isBad && s > M.threshold * 0.6;
+      b.className = 'rack' + (isBad ? ' bad' : isWarn ? ' warn' : '') + (r === sel ? ' sel' : '');
+      b.querySelector('.st').textContent = isBad ? 'ALERT' : isWarn ? 'Watch' : 'Normal';
+      b.querySelector('.bar i').style.width = Math.min(100, s / (M.threshold * 2) * 100) + '%';
+      if (isBad) alerting.push(r);
+    });
+    const banner = $('banner');
+    if (alerting.length) {
+      const r = alerting[0], since = ((now - D.alerts[r]) * M.step_min / 60).toFixed(1);
+      const tripped = M.static_alarm_t != null && now >= M.static_alarm_t;
+      banner.className = 'alert';
+      $('bannerBig').textContent = `⚠ ${alerting.join(', ')}: cooling loop is deviating from forecast`;
+      $('bannerSub').textContent = tripped
+        ? `Model alert raised ${since} h ago. The static low-pressure alarm is only tripping now.`
+        : `Model alert raised ${since} h ago. The static low-pressure alarm has not tripped yet, so there is still time to schedule a repair.`;
+    } else {
+      banner.className = 'ok';
+      $('bannerBig').textContent = '✓ All 12 racks are within their forecast range';
+      $('bannerSub').textContent = `Every 30 min, the forecast made 4 h earlier is compared with what was measured. The heavy compute job on ${M.burst_rack} is not flagged.`;
+    }
+    const k = [];
+    if (M.lead_h != null) k.push(['hero', M.lead_h + ' h', 'Earlier than the static low-pressure alarm']);
+    k.push(['', M.detect_after_h != null ? M.detect_after_h + ' h' : 'Not detected', 'Leak onset to model alert']);
+    k.push(['', M.false_alert_racks.length + ' / 11', 'False alerts on healthy racks (6 days)']);
+    k.push(['', M.ms_per_forecast + ' ms', 'Per forecast (laptop CPU)']);
+    $('kpis').innerHTML = k.map(x => `<div class="kpi ${x[0]}"><div class="v">${x[1]}</div><div class="l">${x[2]}</div></div>`).join('');
+    $('chartTitle').textContent = `${sel} telemetry · last 48 h` + (sel === M.leak_rack ? ' · slow leak injected on this rack' : sel === M.burst_rack ? ' · heavy compute job on this rack (not a fault)' : '');
+    D.signals.forEach(s => drawChart(s, now));
+    $('slider').value = ei; $('clock').textContent = tLabel(now);
+  }
+
+  const slider = $('slider'); slider.max = ET.length - 1;
+  slider.oninput = () => { ei = +slider.value; render(); };
+  const stop = () => { clearInterval(timer); timer = null; $('play').textContent = '▶ Play'; };
+  $('play').onclick = () => {
+    if (timer) return stop();
+    if (ei >= ET.length - 1) ei = 0;
+    $('play').textContent = '❚❚ Pause';
+    timer = setInterval(() => { if (ei >= ET.length - 1) return stop(); ei++; render(); }, 140);
+  };
+  $('jump').onclick = () => { stop(); ei = Math.max(0, ET.findIndex(t => t >= M.leak_start - 36)); render(); };
+  window.addEventListener('resize', render);
+  $('foot').innerHTML = `<b>Telemetry is simulated</b> and has not been validated on real data-center data. The model uses public weights with no training or fine-tuning; the alert threshold is calibrated only on the first ${M.calib_days} days of normal operation. ${M.n_forecasts.toLocaleString()} forecasts in ${M.infer_s} s total.`;
+  ei = Math.max(0, ET.findIndex(t => t >= M.leak_start - 36));
+  render();
+})();
+</script>
+</body>
+</html>
