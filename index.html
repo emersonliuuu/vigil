@@ -6,93 +6,138 @@
 <title>Vigil · On-prem Leak Early Warning</title>
 <style>
   :root {
-    --bg: #0d1117; --panel: #151b24; --panel2: #1b2330; --line: #2a3443;
-    --text: #e6edf3; --muted: #8b98a9; --ok: #2fbf71; --warn: #f2b134; --bad: #f0524f;
-    --accent: #4aa8ff; --band: rgba(74,168,255,.18);
+    --bg: #0a0e14; --panel: #111823; --panel2: #161f2c; --line: #243042; --line2: #1b2533;
+    --text: #e8eef5; --muted: #8696a9; --dim: #5d6c7f;
+    --ok: #34c77b; --warn: #f5b83d; --bad: #f25c54; --accent: #56b0ff;
+    --band: rgba(86,176,255,.16);
   }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text);
-    font: 14px/1.5 -apple-system, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif; }
-  header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 14px 20px; border-bottom: 1px solid var(--line); }
-  h1 { font-size: 20px; margin: 0; letter-spacing: .02em; }
-  h1 small { font-size: 13px; color: var(--muted); font-weight: 400; margin-left: 8px; }
-  .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
-  .badge { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 3px 11px; font-size: 12px; color: var(--muted); white-space: nowrap; }
-  .badge b { color: var(--text); font-weight: 600; }
-  .badge.local { border-color: #1f6f46; color: #7be0a6; }
-  main { display: grid; grid-template-columns: minmax(300px, 380px) 1fr; gap: 16px; padding: 16px 20px; }
-  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
-  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
-  .panel h2 { font-size: 13px; color: var(--muted); font-weight: 600; margin: 0 0 10px; text-transform: none; }
-  #banner { border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; border: 1px solid var(--line); background: var(--panel2); }
-  #banner.ok { border-color: #1f6f46; }
-  #banner.alert { border-color: var(--bad); background: #2a1616; }
-  #banner .big { font-size: 17px; font-weight: 700; }
-  #banner .sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  html, body { height: 100%; }
+  body { margin: 0; background: radial-gradient(1200px 500px at 70% -10%, #13233a 0%, var(--bg) 60%) fixed, var(--bg); color: var(--text);
+    font: 14px/1.5 -apple-system, "SF Pro Text", "Segoe UI", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; padding: 14px 24px; border-bottom: 1px solid var(--line2); }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .logo { width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg, #56b0ff, #2f6fe0); display: grid; place-items: center; box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset; }
+  .logo i { width: 10px; height: 10px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 4px rgba(255,255,255,.25); }
+  h1 { font-size: 20px; margin: 0; letter-spacing: .01em; font-weight: 700; }
+  .tag { color: var(--muted); font-size: 13px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+  .chip { border: 1px solid var(--line); background: rgba(17,24,35,.7); border-radius: 999px; padding: 4px 12px; font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .chip b { color: var(--text); font-weight: 600; }
+  .chip.local { border-color: #1f6f46; color: #86e3b0; background: rgba(52,199,123,.08); }
+  .chip.local::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--ok); margin-right: 7px; box-shadow: 0 0 0 3px rgba(52,199,123,.2); }
+
+  main { display: grid; grid-template-columns: minmax(310px, 372px) minmax(0, 1fr); gap: 16px; padding: 16px 24px 8px; max-width: 1680px; margin: 0 auto; }
+  @media (max-width: 920px) { main { grid-template-columns: minmax(0, 1fr); padding: 16px; } header { padding: 14px 16px; } }
+  .panel { background: var(--panel); border: 1px solid var(--line2); border-radius: 14px; padding: 16px; }
+  .eyebrow { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); font-weight: 600; margin: 0 0 10px; }
+
+  #banner { border-radius: 14px; padding: 14px 16px; margin-bottom: 16px; border: 1px solid #1c5a3b; background: linear-gradient(180deg, rgba(52,199,123,.10), rgba(52,199,123,.03)); transition: background .25s, border-color .25s; }
+  #banner.alert { border-color: var(--bad); background: linear-gradient(180deg, rgba(242,92,84,.20), rgba(242,92,84,.06)); }
+  #banner .big { font-size: 17px; font-weight: 700; line-height: 1.3; }
+  #banner .sub { color: #b6c2d0; font-size: 13px; margin-top: 4px; }
+
   .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-  .rack { border: 1px solid var(--line); border-radius: 8px; padding: 8px 6px; text-align: center; cursor: pointer; background: var(--panel2);
-    font: inherit; color: inherit; transition: transform .1s; }
-  .rack:hover { transform: translateY(-1px); }
-  .rack.sel { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .rack { position: relative; border: 1px solid var(--line); border-radius: 10px; padding: 9px 6px 8px; text-align: center; cursor: pointer; background: var(--panel2);
+    font: inherit; color: inherit; transition: transform .12s, border-color .2s, background .2s; }
+  .rack:hover { transform: translateY(-1px); border-color: #3a4b63; }
+  .rack:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .rack.sel { box-shadow: 0 0 0 2px var(--accent); }
   .rack .id { font-weight: 700; font-size: 14px; }
-  .rack .st { font-size: 11px; color: var(--muted); }
-  .rack .bar { height: 5px; border-radius: 3px; background: #0b0f15; margin-top: 6px; overflow: hidden; }
-  .rack .bar i { display: block; height: 100%; width: 0; background: var(--ok); }
-  .rack.warn { border-color: var(--warn); } .rack.warn .bar i { background: var(--warn); }
-  .rack.bad { border-color: var(--bad); background: #2a1616; } .rack.bad .bar i { background: var(--bad); }
-  .rack.bad .st { color: #ff9c9a; font-weight: 600; }
-  .kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
-  .kpi { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; }
-  .kpi .v { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .kpi .l { font-size: 12px; color: var(--muted); }
-  .kpi.hero .v { color: var(--ok); }
-  .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  @media (max-width: 1150px) { .charts { grid-template-columns: 1fr; } }
-  .chart { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px 4px; }
-  .chart .t { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
-  .chart .t b { color: var(--text); }
-  canvas { width: 100%; height: 170px; display: block; }
-  .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--muted); margin: 0 0 10px; }
-  .legend span::before { content: ""; display: inline-block; width: 14px; height: 3px; margin-right: 6px; vertical-align: middle; background: var(--c); }
-  .legend .bandkey::before { height: 9px; background: var(--band); border: 1px solid rgba(74,168,255,.5); }
-  .controls { display: flex; align-items: center; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
-  button.ctl { background: var(--accent); color: #04121f; border: 0; border-radius: 8px; padding: 8px 16px; font: inherit; font-weight: 700; cursor: pointer; min-width: 76px; }
+  .rack .st { font-size: 11px; color: var(--muted); display: flex; align-items: center; justify-content: center; gap: 5px; }
+  .rack .st::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
+  .rack .bar { height: 4px; border-radius: 2px; background: #0a0f16; margin-top: 7px; overflow: hidden; }
+  .rack .bar i { display: block; height: 100%; width: 0; background: var(--ok); transition: width .12s linear; }
+  .rack.warn { border-color: var(--warn); } .rack.warn .bar i, .rack.warn .st::before { background: var(--warn); }
+  .rack.bad { border-color: var(--bad); background: rgba(242,92,84,.14); animation: pulse 1.6s ease-in-out infinite; }
+  .rack.bad .bar i, .rack.bad .st::before { background: var(--bad); }
+  .rack.bad .st { color: #ffb0ab; font-weight: 700; letter-spacing: .04em; }
+  @keyframes pulse { 50% { box-shadow: 0 0 0 4px rgba(242,92,84,.18); } }
+  .rack.bad.sel { animation: none; box-shadow: 0 0 0 2px var(--accent); }
+  @media (prefers-reduced-motion: reduce) { .rack.bad { animation: none; } }
+  .gridnote { color: var(--dim); font-size: 12px; margin-top: 10px; }
+
+  .hero { margin-top: 16px; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; background: linear-gradient(180deg, #172334, var(--panel2)); }
+  .hero .v { font-size: 44px; line-height: 1; font-weight: 800; color: var(--ok); letter-spacing: -.02em; }
+  .hero .v small { font-size: 18px; font-weight: 600; margin-left: 6px; letter-spacing: 0; }
+  .hero .l { color: var(--muted); font-size: 13px; margin-top: 6px; }
+  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+  .kpi { background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 9px 10px; }
+  .kpi .v { font-size: 18px; font-weight: 700; }
+  .kpi .l { font-size: 11px; color: var(--muted); line-height: 1.35; margin-top: 2px; }
+
+  .head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; margin-bottom: 10px; }
+  .head h2 { font-size: 16px; margin: 0; font-weight: 700; }
+  .head h2 span { color: var(--muted); font-weight: 400; font-size: 13px; margin-left: 8px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; color: var(--muted); }
+  .legend span::before { content: ""; display: inline-block; width: 14px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; background: var(--c); }
+  .legend .bandkey::before { height: 9px; background: var(--band); border: 1px solid rgba(86,176,255,.5); }
+  .chart { background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px 4px; }
+  .chart .t { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: var(--muted); }
+  .chart .t b { color: var(--text); font-weight: 600; }
+  .chart .t .scored { color: var(--accent); border: 1px solid rgba(86,176,255,.35); border-radius: 4px; padding: 0 5px; font-size: 10px; margin-left: 6px; text-transform: uppercase; letter-spacing: .05em; }
+  canvas { width: 100%; height: 150px; display: block; }
+  #scoreWrap canvas { height: 92px; }
+  .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+  @media (max-width: 1180px) { .charts { grid-template-columns: minmax(0, 1fr); } }
+
+  .transport { display: flex; align-items: center; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
+  button.ctl { background: var(--accent); color: #04121f; border: 0; border-radius: 9px; padding: 9px 18px; font: inherit; font-weight: 700; cursor: pointer; min-width: 92px; }
+  button.ctl:hover { filter: brightness(1.08); }
   button.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); font-weight: 500; }
-  input[type=range] { flex: 1; min-width: 180px; accent-color: var(--accent); }
-  #clock { font-variant-numeric: tabular-nums; color: var(--muted); min-width: 130px; }
-  footer { padding: 4px 20px 20px; color: var(--muted); font-size: 12px; }
+  .track { flex: 1; min-width: 220px; position: relative; padding-bottom: 32px; }
+  .track input { width: 100%; margin: 0; accent-color: var(--accent); display: block; }
+  .ev { position: absolute; top: 20px; transform: translateX(-50%); font-size: 10px; color: var(--c); white-space: nowrap; pointer-events: none; }
+  .ev::before { content: ""; position: absolute; left: 50%; top: -14px; width: 2px; height: 12px; background: var(--c); transform: translateX(-50%); border-radius: 1px; }
+  .ev.low { top: 33px; }
+  .ev.low::before { top: -27px; height: 25px; }
+  #clock { color: var(--muted); min-width: 96px; text-align: right; }
+  footer { padding: 6px 24px 22px; color: var(--dim); font-size: 12px; max-width: 1680px; margin: 0 auto; }
   footer b { color: var(--warn); font-weight: 600; }
 </style>
 </head>
 <body>
 <header>
-  <h1>Vigil <small>Leak early warning that never leaves the data hall · Vertical Foundation Model demo</small></h1>
-  <div class="badges" id="badges"></div>
+  <div class="brand">
+    <div class="logo" aria-hidden="true"><i></i></div>
+    <div><h1>Vigil</h1><div class="tag">Leak early warning that never leaves the data hall</div></div>
+  </div>
+  <div class="chips" id="chips"></div>
 </header>
 <main>
   <section>
-    <div id="banner" class="ok"><div class="big" id="bannerBig"></div><div class="sub" id="bannerSub"></div></div>
+    <div id="banner" role="status"><div class="big" id="bannerBig"></div><div class="sub" id="bannerSub"></div></div>
     <div class="panel">
-      <h2>Container data hall A · 12 liquid-cooled racks (click to inspect)</h2>
+      <p class="eyebrow">Container data hall A · 12 liquid-cooled racks</p>
       <div class="grid" id="grid"></div>
+      <div class="gridnote">Bar = deviation from forecast. Click a rack to inspect it.</div>
+      <div class="hero"><div class="v num" id="heroV"></div><div class="l" id="heroL"></div></div>
       <div class="kpis" id="kpis"></div>
     </div>
   </section>
   <section class="panel">
-    <h2 id="chartTitle"></h2>
-    <div class="legend">
-      <span style="--c:#e6edf3">Measured</span>
-      <span class="bandkey">Normal range the model forecast 4 h earlier (10–90%)</span>
-      <span style="--c:#f2b134">Simulated leak starts</span>
-      <span style="--c:#2fbf71">Model alert</span>
-      <span style="--c:#f0524f">Static low-pressure alarm</span>
+    <div class="head">
+      <h2 id="chartTitle"></h2>
+      <div class="legend">
+        <span style="--c:#e8eef5">Measured</span>
+        <span class="bandkey">Forecast range made 4 h earlier (10–90%)</span>
+        <span style="--c:#f5b83d">Leak starts (simulated)</span>
+        <span style="--c:#34c77b">Vigil alert</span>
+        <span style="--c:#f25c54">Static pressure alarm</span>
+      </div>
+    </div>
+    <div class="chart" id="scoreWrap">
+      <div class="t"><span><b>Anomaly score</b> · how far the last 4 h fell outside the forecast range</span><span id="v_score" class="num"></span></div>
+      <canvas id="c_score"></canvas>
     </div>
     <div class="charts" id="charts"></div>
-    <div class="controls">
+    <div class="transport">
       <button class="ctl" id="play">▶ Play</button>
-      <button class="ctl ghost" id="jump">Jump to before leak</button>
-      <input type="range" id="slider" min="0" value="0" aria-label="Timeline">
-      <span id="clock"></span>
+      <button class="ctl ghost" id="jump">Before leak</button>
+      <div class="track"><input type="range" id="slider" min="0" value="0" aria-label="Timeline"><div id="evs"></div></div>
+      <span id="clock" class="num"></span>
     </div>
   </section>
 </main>
@@ -102,17 +147,19 @@
 <script>
 (function () {
   if (!window.DATA) { document.body.innerHTML = '<p style="padding:24px">data.js not found. Run <code>.venv/bin/python pipeline.py</code> first.</p>'; return; }
-  const D = window.DATA, M = D.meta, ET = D.eval_times, VIEW = 2 * 288;   // show last 2 days
+  const D = window.DATA, M = D.meta, ET = D.eval_times, VIEW = 2 * 288, SCORED = ['pressure', 'resist'];
+  const C = { text: '#e8eef5', muted: '#8696a9', grid: '#1f2a3a', ok: '#34c77b', warn: '#f5b83d', bad: '#f25c54', accent: '#56b0ff' };
   let ei = 0, sel = M.leak_rack, timer = null;
   const $ = id => document.getElementById(id);
-  const tLabel = t => { const m = t * M.step_min; return `Day ${Math.floor(m / 1440) + 1}, ${String(Math.floor(m % 1440 / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`; };
-  const fmtParams = p => p ? (p >= 1e6 ? (p / 1e6).toFixed(0) + 'M' : p) + ' params' : 'No parameters';
+  const hrs = steps => steps * M.step_min / 60;
+  const tLabel = t => { const m = t * M.step_min; return `Day ${Math.floor(m / 1440) + 1} · ${String(Math.floor(m % 1440 / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`; };
+  const eiOf = t => { const i = ET.findIndex(x => x >= t); return i < 0 ? ET.length - 1 : i; };
 
-  $('badges').innerHTML =
-    `<span class="badge"><b>${M.model}</b></span>` +
-    `<span class="badge"><b>${fmtParams(M.params)}</b> · CPU inference</span>` +
-    `<span class="badge"><b>Zero training</b> · each rack uses only its own last ${M.context_h} h</span>` +
-    `<span class="badge local">● Data never leaves this machine</span>`;
+  $('chips').innerHTML =
+    `<span class="chip">Open-source model · <b>${M.model.replace(' (zero-shot)', '')}</b></span>` +
+    `<span class="chip"><b>${M.params ? Math.round(M.params / 1e6) + 'M' : '0'}</b> params · laptop CPU</span>` +
+    `<span class="chip"><b>Used as-is</b> · no training or tuning</span>` +
+    `<span class="chip local">Data never leaves this machine</span>`;
 
   const grid = $('grid');
   D.racks.forEach(r => {
@@ -126,61 +173,111 @@
   const charts = $('charts');
   D.signals.forEach(s => {
     const d = document.createElement('div'); d.className = 'chart';
-    d.innerHTML = `<div class="t"><span><b>${s.name}</b> (${s.unit})</span><span id="v_${s.key}"></span></div><canvas id="c_${s.key}"></canvas>`;
+    const tag = SCORED.includes(s.key) ? '<span class="scored">scored</span>' : '';
+    d.innerHTML = `<div class="t"><span><b>${s.name}</b>${tag}</span><span id="v_${s.key}" class="num"></span></div><canvas id="c_${s.key}"></canvas>`;
     charts.appendChild(d);
   });
 
-  function drawChart(sig, now) {
-    const cv = $('c_' + sig.key), dpr = window.devicePixelRatio || 1;
-    const W = cv.clientWidth, H = cv.clientHeight;
-    if (cv.width !== W * dpr) { cv.width = W * dpr; cv.height = H * dpr; }
+  // event markers under the timeline
+  const evs = [[M.leak_start, 'Leak starts', C.warn], [M.alert_t, 'Vigil alert', C.ok], [M.static_alarm_t, 'Static alarm', C.bad]];
+  $('evs').innerHTML = evs.filter(e => e[0] != null).map((e, n) => {
+    const f = eiOf(e[0]) / (ET.length - 1);
+    return `<span class="ev${n % 2 ? ' low' : ''}" style="--c:${e[2]};left:calc(8px + (100% - 16px) * ${f.toFixed(4)})">${e[1]}</span>`;
+  }).join('');
+
+  function setup(cv) {
+    const dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+    if (cv.width !== Math.round(W * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
     const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
-    const y = D.series[sel][sig.key], band = D.bands[sel][sig.key];
-    const a = Math.max(0, now - VIEW), b = now, padL = 38, padB = 16, padT = 6;
-    let lo = Infinity, hi = -Infinity;
-    for (let i = a; i < b; i++) {
-      lo = Math.min(lo, y[i], band.lo[i] ?? y[i]); hi = Math.max(hi, y[i], band.hi[i] ?? y[i]);
+    g.font = '10px -apple-system, system-ui, sans-serif';
+    return { g, W, H };
+  }
+  function frame(g, W, H, a, lo, hi, padL, padT, padB, dec) {
+    const X = i => padL + (i - a) / VIEW * (W - padL - 8), Y = v => padT + (hi - v) / (hi - lo) * (H - padT - padB);
+    g.lineWidth = 1; g.strokeStyle = C.grid; g.fillStyle = C.muted; g.textAlign = 'right';
+    for (let k = 0; k <= 3; k++) {
+      const v = lo + (hi - lo) * k / 3, yy = Math.round(Y(v)) + .5;
+      g.beginPath(); g.moveTo(padL, yy); g.lineTo(W - 8, yy); g.stroke();
+      g.fillText(v.toFixed(dec), padL - 6, yy + 3);
     }
+    g.textAlign = 'center';
+    [48, 36, 24, 12, 0].forEach(h => { const i = a + VIEW - h * 12; g.fillText(h ? `−${h} h` : 'now', Math.min(Math.max(X(i), padL + 12), W - 18), H - 3); });
+    g.textAlign = 'left';
+    return { X, Y };
+  }
+  function markers(g, X, a, b, top, bottom) {
+    if (sel !== M.leak_rack) return;
+    evs.forEach(([t, , color]) => {
+      if (t == null || t < a || t > b) return;
+      g.strokeStyle = color; g.lineWidth = 1.5; g.beginPath(); g.moveTo(X(t), top); g.lineTo(X(t), bottom); g.stroke();
+    });
+  }
+
+  function drawSignal(sig, now) {
+    const { g, W, H } = setup($('c_' + sig.key));
+    const y = D.series[sel][sig.key], band = D.bands[sel][sig.key];
+    const a = Math.max(0, now - VIEW), b = now, padL = 40, padB = 16, padT = 8;
+    let lo = Infinity, hi = -Infinity;
+    for (let i = a; i < b; i++) { lo = Math.min(lo, y[i], band.lo[i] ?? y[i]); hi = Math.max(hi, y[i], band.hi[i] ?? y[i]); }
     if (sig.key === 'pressure' && sel === M.leak_rack) lo = Math.min(lo, M.pressure_alarm - 2);
     const pad = (hi - lo) * 0.08 || 1; lo -= pad; hi += pad;
-    const X = i => padL + (i - a) / (VIEW) * (W - padL - 6), Y = v => padT + (hi - v) / (hi - lo) * (H - padT - padB);
-    g.font = '10px system-ui'; g.fillStyle = '#8b98a9'; g.strokeStyle = '#232c39'; g.lineWidth = 1;
-    for (let k = 0; k <= 3; k++) {
-      const v = lo + (hi - lo) * k / 3, yy = Y(v);
-      g.beginPath(); g.moveTo(padL, yy); g.lineTo(W - 6, yy); g.stroke();
-      g.fillText(v.toFixed(hi - lo > 12 ? 0 : 1), 2, yy + 3);
-    }
+    const { X, Y } = frame(g, W, H, a, lo, hi, padL, padT, padB, hi - lo > 12 ? 0 : 1);
     // forecast band
-    g.fillStyle = 'rgba(74,168,255,.18)';
-    let open = false; const lower = [];
-    g.beginPath();
-    for (let i = a; i < b; i++) {
-      if (band.hi[i] == null) continue;
-      if (!open) { g.moveTo(X(i), Y(band.hi[i])); open = true; } else g.lineTo(X(i), Y(band.hi[i]));
-      lower.push(i);
+    const idx = []; for (let i = a; i < b; i++) if (band.hi[i] != null) idx.push(i);
+    if (idx.length) {
+      g.fillStyle = 'rgba(86,176,255,.16)'; g.beginPath();
+      idx.forEach((i, j) => j ? g.lineTo(X(i), Y(band.hi[i])) : g.moveTo(X(i), Y(band.hi[i])));
+      for (let j = idx.length - 1; j >= 0; j--) g.lineTo(X(idx[j]), Y(band.lo[idx[j]]));
+      g.closePath(); g.fill();
     }
-    for (let j = lower.length - 1; j >= 0; j--) g.lineTo(X(lower[j]), Y(band.lo[lower[j]]));
-    if (open) { g.closePath(); g.fill(); }
-    // static alarm line on pressure
     if (sig.key === 'pressure') {
-      g.strokeStyle = 'rgba(240,82,79,.55)'; g.setLineDash([4, 4]);
       const yy = Y(M.pressure_alarm);
-      if (yy < H - padB) { g.beginPath(); g.moveTo(padL, yy); g.lineTo(W - 6, yy); g.stroke(); g.fillStyle = '#f0524f'; g.fillText('Low-pressure alarm ' + M.pressure_alarm, padL + 4, yy - 3); }
-      g.setLineDash([]);
+      if (yy < H - padB) {
+        g.strokeStyle = 'rgba(242,92,84,.6)'; g.setLineDash([4, 4]); g.beginPath(); g.moveTo(padL, yy); g.lineTo(W - 8, yy); g.stroke(); g.setLineDash([]);
+        g.fillStyle = C.bad; g.fillText(`Static alarm < ${M.pressure_alarm} kPa`, padL + 6, yy - 4);
+      }
     }
-    // event markers
-    const mark = (t, color) => { if (t == null || t < a || t > b) return; g.strokeStyle = color; g.lineWidth = 1.5; g.beginPath(); g.moveTo(X(t), padT); g.lineTo(X(t), H - padB); g.stroke(); };
-    if (sel === M.leak_rack) { mark(M.leak_start, '#f2b134'); mark(M.alert_t, '#2fbf71'); mark(M.static_alarm_t, '#f0524f'); }
-    // actual
-    g.strokeStyle = '#e6edf3'; g.lineWidth = 1.4; g.beginPath();
-    for (let i = a; i < b; i++) { i === a ? g.moveTo(X(i), Y(y[i])) : g.lineTo(X(i), Y(y[i])); }
+    markers(g, X, a, b, padT, H - padB);
+    // raw samples (faint) + 30-min average (bold)
+    g.strokeStyle = 'rgba(232,238,245,.28)'; g.lineWidth = 1; g.beginPath();
+    for (let i = a; i < b; i++) i === a ? g.moveTo(X(i), Y(y[i])) : g.lineTo(X(i), Y(y[i]));
     g.stroke();
-    $('v_' + sig.key).textContent = 'Now ' + y[b - 1].toFixed(1) + ' ' + sig.unit;
+    g.strokeStyle = C.text; g.lineWidth = 1.8; g.lineJoin = 'round'; g.beginPath();
+    let sum = 0;
+    for (let i = a; i < b; i++) {
+      sum += y[i]; if (i - a >= 6) sum -= y[i - 6];
+      const v = sum / Math.min(6, i - a + 1);
+      i === a ? g.moveTo(X(i), Y(v)) : g.lineTo(X(i), Y(v));
+    }
+    g.stroke();
+    $('v_' + sig.key).textContent = y[b - 1].toFixed(1) + ' ' + sig.unit;
+  }
+
+  function drawScore(now) {
+    const { g, W, H } = setup($('c_score'));
+    const s = D.scores[sel], a = Math.max(0, now - VIEW), padL = 40, padT = 8, padB = 16;
+    let hi = M.threshold * 2.2;
+    for (let i = 0; i <= ei; i++) if (ET[i] >= a) hi = Math.max(hi, s[i] * 1.1);
+    const { X, Y } = frame(g, W, H, a, 0, hi, padL, padT, padB, 2);
+    const yT = Y(M.threshold);
+    g.strokeStyle = 'rgba(245,184,61,.8)'; g.setLineDash([5, 4]); g.beginPath(); g.moveTo(padL, yT); g.lineTo(W - 8, yT); g.stroke(); g.setLineDash([]);
+    g.fillStyle = C.warn; g.fillText('Alert threshold', padL + 6, yT - 4);
+    markers(g, X, a, now, padT, H - padB);
+    const pts = []; for (let i = 0; i <= ei; i++) if (ET[i] >= a) pts.push([X(ET[i]), Y(s[i]), s[i]]);
+    if (pts.length) {
+      const over = pts[pts.length - 1][2] > M.threshold, col = over ? C.bad : C.accent;
+      g.beginPath(); pts.forEach((p, j) => j ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1]));
+      g.lineTo(pts[pts.length - 1][0], Y(0)); g.lineTo(pts[0][0], Y(0)); g.closePath();
+      g.fillStyle = over ? 'rgba(242,92,84,.14)' : 'rgba(86,176,255,.10)'; g.fill();
+      g.strokeStyle = col; g.lineWidth = 2; g.lineJoin = 'round'; g.beginPath();
+      pts.forEach((p, j) => j ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.stroke();
+      const p = pts[pts.length - 1]; g.fillStyle = col; g.beginPath(); g.arc(p[0], p[1], 3.5, 0, 7); g.fill();
+    }
+    $('v_score').textContent = `${s[ei].toFixed(2)} / threshold ${M.threshold.toFixed(2)}`;
   }
 
   function render() {
-    const now = ET[ei];
-    let alerting = [];
+    const now = ET[ei], alerting = [];
     document.querySelectorAll('.rack').forEach(b => {
       const r = b.dataset.r, s = D.scores[r][ei], at = D.alerts[r];
       const isBad = at != null && now >= at, isWarn = !isBad && s > M.threshold * 0.6;
@@ -189,44 +286,56 @@
       b.querySelector('.bar i').style.width = Math.min(100, s / (M.threshold * 2) * 100) + '%';
       if (isBad) alerting.push(r);
     });
-    const banner = $('banner');
     if (alerting.length) {
-      const r = alerting[0], since = ((now - D.alerts[r]) * M.step_min / 60).toFixed(1);
+      const r = alerting[0], since = hrs(now - D.alerts[r]).toFixed(1);
       const tripped = M.static_alarm_t != null && now >= M.static_alarm_t;
-      banner.className = 'alert';
-      $('bannerBig').textContent = `⚠ ${alerting.join(', ')}: cooling loop is deviating from forecast`;
+      $('banner').className = 'alert';
+      $('bannerBig').textContent = `${alerting.join(', ')}: cooling loop is deviating from forecast`;
       $('bannerSub').textContent = tripped
-        ? `Model alert raised ${since} h ago. The static low-pressure alarm is only tripping now.`
-        : `Model alert raised ${since} h ago. The static low-pressure alarm has not tripped yet, so there is still time to schedule a repair.`;
+        ? `Vigil alerted ${since} h ago. The static low-pressure alarm is only tripping now.`
+        : `Vigil alerted ${since} h ago. The static low-pressure alarm has not tripped yet, so there is still time to schedule a repair.`;
     } else {
-      banner.className = 'ok';
-      $('bannerBig').textContent = '✓ All 12 racks are within their forecast range';
-      $('bannerSub').textContent = `Every 30 min, the forecast made 4 h earlier is compared with what was measured. The heavy compute job on ${M.burst_rack} is not flagged.`;
+      $('banner').className = '';
+      $('bannerBig').textContent = 'All 12 racks are within their forecast range';
+      $('bannerSub').textContent = `Checked every 30 min against the forecast made 4 h earlier. The heavy compute job on ${M.burst_rack} is not flagged.`;
     }
-    const k = [];
-    if (M.lead_h != null) k.push(['hero', M.lead_h + ' h', 'Earlier than the static low-pressure alarm']);
-    k.push(['', M.detect_after_h != null ? M.detect_after_h + ' h' : 'Not detected', 'Leak onset to model alert']);
-    k.push(['', M.false_alert_racks.length + ' / 11', 'False alerts on healthy racks (6 days)']);
-    k.push(['', M.ms_per_forecast + ' ms', 'Per forecast (laptop CPU)']);
-    $('kpis').innerHTML = k.map(x => `<div class="kpi ${x[0]}"><div class="v">${x[1]}</div><div class="l">${x[2]}</div></div>`).join('');
-    $('chartTitle').textContent = `${sel} telemetry · last 48 h` + (sel === M.leak_rack ? ' · slow leak injected on this rack' : sel === M.burst_rack ? ' · heavy compute job on this rack (not a fault)' : '');
-    D.signals.forEach(s => drawChart(s, now));
+    const note = sel === M.leak_rack ? 'slow leak injected' : sel === M.burst_rack ? 'heavy compute job, not a fault' : 'healthy';
+    $('chartTitle').innerHTML = `${sel} telemetry <span>last 48 h · ${note}</span>`;
+    drawScore(now);
+    D.signals.forEach(s => drawSignal(s, now));
     $('slider').value = ei; $('clock').textContent = tLabel(now);
   }
+
+  $('heroV').innerHTML = M.lead_h != null ? `${M.lead_h}<small>hours earlier</small>` : '—';
+  $('heroL').textContent = M.lead_h != null ? 'than the static low-pressure alarm, in this simulation' : 'Leak was not detected in this run';
+  $('kpis').innerHTML = [
+    [M.detect_after_h != null ? M.detect_after_h + ' h' : '—', 'leak onset to alert'],
+    [M.false_alert_racks.length + ' / 11', 'false alerts on healthy racks'],
+    [Math.round(M.ms_per_forecast) + ' ms', 'per forecast, on CPU'],
+  ].map(x => `<div class="kpi"><div class="v num">${x[0]}</div><div class="l">${x[1]}</div></div>`).join('');
+  $('foot').innerHTML = `<b>Telemetry is simulated</b> and has not been validated on real data-center data. ` +
+    `This demo uses an open-source pretrained model as-is: no model was trained or tuned for this hackathon. Fine-tuning on real cooling telemetry is future work. ` +
+    `The alert threshold is calibrated on the first ${M.calib_days} days of normal operation. ${M.n_forecasts.toLocaleString()} forecasts in ${M.infer_s} s.`;
 
   const slider = $('slider'); slider.max = ET.length - 1;
   slider.oninput = () => { ei = +slider.value; render(); };
   const stop = () => { clearInterval(timer); timer = null; $('play').textContent = '▶ Play'; };
-  $('play').onclick = () => {
+  const toggle = () => {
     if (timer) return stop();
-    if (ei >= ET.length - 1) ei = 0;
+    if (ei >= ET.length - 1) ei = eiOf(M.leak_start - 36);
     $('play').textContent = '❚❚ Pause';
     timer = setInterval(() => { if (ei >= ET.length - 1) return stop(); ei++; render(); }, 140);
   };
-  $('jump').onclick = () => { stop(); ei = Math.max(0, ET.findIndex(t => t >= M.leak_start - 36)); render(); };
+  $('play').onclick = toggle;
+  $('jump').onclick = () => { stop(); ei = eiOf(M.leak_start - 36); render(); };
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT') return;
+    if (e.code === 'Space' && e.target.tagName !== 'BUTTON') { e.preventDefault(); toggle(); }
+    if (e.code === 'ArrowRight') { stop(); ei = Math.min(ET.length - 1, ei + 1); render(); }
+    if (e.code === 'ArrowLeft') { stop(); ei = Math.max(0, ei - 1); render(); }
+  });
   window.addEventListener('resize', render);
-  $('foot').innerHTML = `<b>Telemetry is simulated</b> and has not been validated on real data-center data. The model uses public weights with no training or fine-tuning; the alert threshold is calibrated only on the first ${M.calib_days} days of normal operation. ${M.n_forecasts.toLocaleString()} forecasts in ${M.infer_s} s total.`;
-  ei = Math.max(0, ET.findIndex(t => t >= M.leak_start - 36));
+  ei = eiOf(M.leak_start - 36);
   render();
 })();
 </script>
